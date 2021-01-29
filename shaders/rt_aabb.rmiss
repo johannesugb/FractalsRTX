@@ -10,6 +10,7 @@ struct Ray
 struct Payload 
 {
     Ray ray;
+    int cnt;
     bool hit;
 };
 

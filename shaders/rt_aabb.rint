@@ -101,52 +101,24 @@ void main()
     ray.origin    = gl_ObjectRayOriginEXT;
     ray.direction = gl_ObjectRayDirectionEXT;
 
-    mat4 M = mat4(
-        gl_WorldToObject3x4EXT[0],
-        gl_WorldToObject3x4EXT[1],
-        gl_WorldToObject3x4EXT[2],
-        vec4(0.0, 0.0, 0.0, 1.0)
-    );
-    M = transpose(M);
-
     Sphere s;
     s.radius = 0.5;
 
     s.center = vec3(0.0, 0.5, 0.0);
     tHit = hitSphere(s, ray);
     if (tHit > 0) {
-        reportIntersectionEXT(1.0, 0);
-        M = M * mat4(
-            vec4(s.radius, 0.0, 0.0, 0.0),
-            vec4(0.0, s.radius, 0.0, 0.0),
-            vec4(0.0, 0.0, s.radius, 0.0),
-            vec4(s.center, 1.0)
-        );
+        reportIntersectionEXT(tHit, 0);
     }
 
     s.center = vec3(0.5, -0.5, 0.0);
     tHit = hitSphere(s, ray);
     if (tHit > 0) {
-        reportIntersectionEXT(1.0, 0);
-        M = M * mat4(
-            vec4(s.radius, 0.0, 0.0, 0.0),
-            vec4(0.0, s.radius, 0.0, 0.0),
-            vec4(0.0, 0.0, s.radius, 0.0),
-            vec4(s.center, 1.0)
-        );
+        reportIntersectionEXT(tHit, 0);
     }
 
     s.center = vec3(-0.5, -0.5, 0.0);
     tHit = hitSphere(s, ray);
     if (tHit > 0) {
-        reportIntersectionEXT(1.0, 0);
-        M = M * mat4(
-            vec4(s.radius, 0.0, 0.0, 0.0),
-            vec4(0.0, s.radius, 0.0, 0.0),
-            vec4(0.0, 0.0, s.radius, 0.0),
-            vec4(s.center, 1.0)
-        );
+        reportIntersectionEXT(tHit, 0);
     }
-
-    mat4 iM = inverse(M);
 }

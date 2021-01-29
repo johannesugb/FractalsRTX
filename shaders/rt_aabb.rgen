@@ -3,6 +3,7 @@
 
 layout(push_constant) uniform PushConstants {
 	mat4 mCameraTransform;
+    int mMaxRecursions;
 } pushConstants;
 
 layout(set = 1, binding = 0) uniform accelerationStructureEXT topLevelAS;
@@ -17,6 +18,7 @@ struct Ray
 struct Payload 
 {
     Ray ray;
+    int cnt;
     bool hit;
 };
 
@@ -54,8 +56,16 @@ void main()
     uint cullMask = 0xff;
     float tmin = 0.001;
     float tmax = 100.0;
+    hitValue.cnt = 0;
     hitValue.hit = true;
     traceRayEXT(topLevelAS, rayFlags, cullMask, 0 /*sbtRecordOffset*/, 0 /*sbtRecordStride*/, 0 /*missIndex*/, origin, tmin, direction, tmax, 0 /*payload*/);
 
-    imageStore(image, ivec2(gl_LaunchIDEXT.xy), hitValue.hit ? vec4(0, 1, 0, 1) : vec4(0.0, 0.1, 0.3, 1.0));
+    vec4 color = vec4(0.0, 0.1, 0.3, 1.0);
+    if (hitValue.hit) {
+        color.r += float((hitValue.cnt >> 0) & 0x1) * 0.7;
+        color.g += float((hitValue.cnt >> 1) & 0x1) * 0.7;
+        color.b += float((hitValue.cnt >> 2) & 0x1) * 0.7;
+    }
+
+    imageStore(image, ivec2(gl_LaunchIDEXT.xy), color);
 }

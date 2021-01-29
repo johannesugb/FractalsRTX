@@ -4,8 +4,9 @@
 
 class fractals_rtx_app : public gvk::invokee
 {
-	struct transformation_matrices {
+	struct push_constant_data {
 		glm::mat4 mCameraTransform;
+		int32_t   mMaxRecursions;
 	};
 
 	// Define a struct for our vertex input data:
@@ -128,7 +129,7 @@ public: // v== avk::invokee overrides which will be invoked by the framework ==v
 			),
 			gvk::context().get_max_ray_tracing_recursion_depth(),
 			// Define push constants and descriptor bindings:
-			avk::push_constant_binding_data { avk::shader_type::ray_generation, 0, sizeof(transformation_matrices) },
+			avk::push_constant_binding_data { avk::shader_type::ray_generation | avk::shader_type::closest_hit, 0, sizeof(push_constant_data) },
 			avk::descriptor_binding(0, 0, mOffscreenImageViews[0]->as_storage_image()), // Just take any, this is just to define the layout
 			avk::descriptor_binding(1, 0, mTLAS[0])                                     // Just take any, this is just to define the layout
 		);
@@ -176,6 +177,10 @@ public: // v== avk::invokee overrides which will be invoked by the framework ==v
 					mTlasUpdateRequired = mTlasUpdateRequired || ImGui::DragFloat3("Translation", &mTranslationsForInstances[i].x, 0.1f);
 					ImGui::PopID();
 				}
+
+				ImGui::Separator();
+
+				ImGui::SliderInt("Max. Recursions", &mMaxRecursions, 0, 30);
 				
 				ImGui::End();
 			});
@@ -239,10 +244,11 @@ public: // v== avk::invokee overrides which will be invoked by the framework ==v
 		}));
 
 		// Set the push constants:
-		auto pushConstantsForThisDrawCall = transformation_matrices { 
-			mQuakeCam.global_transformation_matrix()
+		auto pushConstantsForThisDrawCall = push_constant_data { 
+			mQuakeCam.global_transformation_matrix(),
+			mMaxRecursions
 		};
-		cmdbfr->handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenKHR, 0, sizeof(pushConstantsForThisDrawCall), &pushConstantsForThisDrawCall);
+		cmdbfr->handle().pushConstants(mPipeline->layout_handle(), vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eClosestHitKHR, 0, sizeof(pushConstantsForThisDrawCall), &pushConstantsForThisDrawCall);
 
 		// Do it:
 		cmdbfr->trace_rays(
@@ -306,7 +312,8 @@ private: // v== Member variables ==v
 
 	// Settings from the UI:
 	bool mTlasUpdateRequired;
-	std::vector<glm::vec3> mTranslationsForInstances; 
+	std::vector<glm::vec3> mTranslationsForInstances;
+	int mMaxRecursions;
 	
 }; // fractals_rtx_app
 
